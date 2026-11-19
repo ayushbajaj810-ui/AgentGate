@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Agent Gatekeeper - 2-Minute Demo Presentation</title>
+<style>
+ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 2rem; display: flex; flex-direction: column; align-items: center; }
+ .container { max-width: 900px; width: 100%; background: #1e293b; border-radius: 12px; padding: 2rem; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+ .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 1rem; margin-bottom: 1.5rem; }
+ .title { font-size: 24px; font-weight: 700; color: #38bdf8; }
+ .meta { color: #94a3b8; font-size: 14px; }
+ .slide { display: none; min-height: 380px; }
+ .slide.active { display: block; }
+ h2 { color: #f1f5f9; margin-top: 0; font-size: 20px; }
+ p, li { color: #cbd5e1; font-size: 16px; line-height: 1.6; }
+ .highlight { color: #38bdf8; font-weight: 600; }
+ .badge-allow { background: #065f46; color: #34d399; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
+ .badge-block { background: #991b1b; color: #f87171; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
+ .badge-ask { background: #854d0e; color: #facc15; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
+ table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+ th, td { border: 1px solid #475569; padding: 8px 12px; text-align: left; font-size: 14px; }
+ th { background: #334155; color: #e2e8f0; }
+ tr:nth-child(even) { background: #1e293b; }
+ .controls { display: flex; justify-content: space-between; align-items: center; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #334155; }
+ button { background: #38bdf8; color: #0f172a; font-weight: 700; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; }
+ button:hover { background: #7dd3fc; }
+ button:disabled { background: #475569; color: #94a3b8; cursor: not-allowed; }
+ .timer { font-size: 14px; color: #94a3b8; font-family: monospace; }
+ audio { width: 100%; margin-top: 1rem; }
+</style>
+</head>
+<body>
+
+<div class="container">
+ <div class="header">
+  <div>
+   <div class="title">Agent Gatekeeper (Amazon.in)</div>
+   <div class="meta">Student: <b>Ayush Bajaj</b> &middot; Enrolment: <b>PGD202571828</b></div>
+  </div>
+  <div class="timer" id="slideTimer">Step 1 of 5 (0:00 - 0:15)</div>
+ </div>
+
+ <!-- Slide 1 -->
+ <div class="slide active" id="s1">
+  <h2>1. Introduction & Student Identity (0:00 - 0:15)</h2>
+  <p>Hello, I am <b>Ayush Bajaj</b>, enrolment number <b class="highlight">PGD202571828</b>.</p>
+  <p>This is my prototype demonstration for the <b>Agent Gatekeeper</b> project applied to <b>Amazon.in</b>.</p>
+  <p>In response to autonomous AI shopping bots like Meta's Muse and Perplexity, Amazon blocks external agents. This Gatekeeper provides a mediated trust layer enforcing security, authorization limits, and audit trails.</p>
+ </div>
+
+ <!-- Slide 2 -->
+ <div class="slide" id="s2">
+  <h2>2. The 8 Gatekeeper Rules & Spending Limit (0:15 - 0:35)</h2>
+  <p>The decision engine enforces 8 sequential rules with an everyday purchase limit of <b class="highlight">INR 2,000</b>:</p>
+  <table>
+   <tr><th>Rule</th><th>Action</th><th>Condition</th><th>Decision</th></tr>
+   <tr><td>R1</td><td>Any</td><td>Agent not registered by customer</td><td><span class="badge-block">BLOCK</span></td></tr>
+   <tr><td>R2</td><td>Any</td><td>Agent was revoked</td><td><span class="badge-block">BLOCK</span></td></tr>
+   <tr><td>R4</td><td>view_order</td><td>Read-only querying</td><td><span class="badge-allow">ALLOW</span></td></tr>
+   <tr><td>R5</td><td>place_order</td><td>Amount &le; INR 2,000 / &gt; INR 2,000</td><td><span class="badge-allow">ALLOW</span> / <span class="badge-ask">ASK CUSTOMER</span></td></tr>
+   <tr><td>R7</td><td>refund</td><td>Any financial return to bank</td><td><span class="badge-ask">ASK CUSTOMER</span></td></tr>
+   <tr><td>R8</td><td>All</td><td>Immutable audit logging to SQLite</td><td>(LOGGED)</td></tr>
+  </table>
+ </div>
+
+ <!-- Slide 3 -->
+ <div class="slide" id="s3">
+  <h2>3. Live Operational Walkthrough (0:35 - 1:35)</h2>
+  <ul>
+   <li><b>Registration:</b> Asha registers agent <code>ShopBot</code> &rarr; Saved to database with timestamp.</li>
+   <li><b>Case 1:</b> <code>ShopBot</code> checks <code>view_order</code> &rarr; <span class="badge-allow">ALLOW (R4)</span>.</li>
+   <li><b>Case 2:</b> Unregistered agent <code>RogueBot</code> tries <code>place_order</code> &rarr; <span class="badge-block">BLOCK (R1)</span>.</li>
+   <li><b>Case 3:</b> <code>ShopBot</code> orders INR 3,000 (&gt; Limit) &rarr; <span class="badge-ask">ASK CUSTOMER (R5)</span>.</li>
+   <li><b>Case 4:</b> <code>ShopBot</code> orders INR 1,000 (&le; Limit) &rarr; <span class="badge-allow">ALLOW (R5)</span>.</li>
+   <li><b>Case 5:</b> Asha revokes <code>ShopBot</code>. Any subsequent request &rarr; <span class="badge-block">BLOCK (R2)</span>.</li>
+   <li><b>Case 6:</b> Refund of INR 300 &rarr; <span class="badge-ask">ASK CUSTOMER (R7)</span>.</li>
+  </ul>
+ </div>
+
+ <!-- Slide 4 -->
+ <div class="slide" id="s4">
+  <h2>4. Audit Trail & The "Wells Fargo Problem" (1:35 - 1:55)</h2>
+  <p>Every decision, registration, and revocation event is logged with exact ISO timestamps in <code>gatekeeper.db</code>.</p>
+  <p><b>Why this matters:</b> In the Wells Fargo unauthorized accounts scandal, actions were taken without clear proof of customer consent. If an autonomous agent buys products after a customer thought they cancelled it, who pays?</p>
+  <p>With our immutable timestamped table, Amazon and the customer have unalterable proof of whether the agent was valid or revoked at the exact second the request arrived.</p>
+ </div>
+
+ <!-- Slide 5 -->
+ <div class="slide" id="s5">
+  <h2>5. Verification & Test Suite Pass (1:55 - 2:00)</h2>
+  <p>All automated test cases executed via <code>run_tests.py</code> passed with 100% compliance:</p>
+  <p><b class="highlight">8/8 Tests PASS</b> (T1 through T8, including our custom revocation precedence verification).</p>
+  <p>The code repository, report PDF, screenshots, and prototype are ready for final submission. Thank you.</p>
+ </div>
+
+ <audio controls src="narration.m4a" id="audioPlayer"></audio>
+
+ <div class="controls">
+  <button id="prevBtn" onclick="prevSlide()" disabled>Previous</button>
+  <button id="nextBtn" onclick="nextSlide()">Next Slide</button>
+ </div>
+</div>
+
+<script>
+let current = 1;
+const total = 5;
+const labels = [
+  "Step 1 of 5 (0:00 - 0:15)",
+  "Step 2 of 5 (0:15 - 0:35)",
+  "Step 3 of 5 (0:35 - 1:35)",
+  "Step 4 of 5 (1:35 - 1:55)",
+  "Step 5 of 5 (1:55 - 2:00)"
+];
+
+function showSlide(n) {
+  for (let i = 1; i <= total; i++) {
+    document.getElementById('s' + i).classList.remove('active');
+  }
+  document.getElementById('s' + n).classList.add('active');
+  document.getElementById('slideTimer').innerText = labels[n - 1];
+  document.getElementById('prevBtn').disabled = (n === 1);
+  document.getElementById('nextBtn').innerText = (n === total) ? "Finish" : "Next Slide";
+}
+
+function nextSlide() {
+  if (current < total) {
+    current++;
+    showSlide(current);
+  }
+}
+
+function prevSlide() {
+  if (current > 1) {
+    current--;
+    showSlide(current);
+  }
+}
+</script>
+</body>
+</html>
